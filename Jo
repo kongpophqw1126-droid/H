@@ -1,0 +1,177 @@
+-- สร้าง GUI หลัก
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local FlyBtn = Instance.new("TextButton")
+local NoclipBtn = Instance.new("TextButton")
+local SpeedInput = Instance.new("TextBox")
+local SpeedBtn = Instance.new("TextButton")
+local GPSLabel = Instance.new("TextLabel")
+
+-- ตั้งค่าหน้าต่างเมนู (GUI)
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ResetOnSpawn = false
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Position = UDim2.new(0.1, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 220, 0, 280)
+MainFrame.Active = true
+MainFrame.Draggable = true -- สามารถลากหน้าต่างไปมาได้
+
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Font = Enum.Font.SourceSansBold
+Title.Text = "XRTOO HACK MENU"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+
+-- 1. ปุ่มบิน (Fly)
+FlyBtn.Name = "FlyBtn"
+FlyBtn.Parent = MainFrame
+FlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+FlyBtn.Position = UDim2.new(0.05, 0, 0.18, 0)
+FlyBtn.Size = UDim2.new(0.9, 0, 0, 35)
+FlyBtn.Font = Enum.Font.SourceSans
+FlyBtn.Text = "บิน (Fly): OFF"
+FlyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+FlyBtn.TextSize = 16
+
+-- 2. ปุ่มเดินทะลุ (Noclip)
+NoclipBtn.Name = "NoclipBtn"
+NoclipBtn.Parent = MainFrame
+NoclipBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+NoclipBtn.Position = UDim2.new(0.05, 0, 0.34, 0)
+NoclipBtn.Size = UDim2.new(0.9, 0, 0, 35)
+NoclipBtn.Font = Enum.Font.SourceSans
+NoclipBtn.Text = "เดินทะลุ (Noclip): OFF"
+NoclipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+NoclipBtn.TextSize = 16
+
+-- 3. ช่องกรอกความเร็ว (Speed 1-100)
+SpeedInput.Name = "SpeedInput"
+SpeedInput.Parent = MainFrame
+SpeedInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+SpeedInput.Position = UDim2.new(0.05, 0, 0.50, 0)
+SpeedInput.Size = UDim2.new(0.5, 0, 0, 35)
+SpeedInput.Font = Enum.Font.SourceSans
+SpeedInput.Text = "16" -- ความเร็วเริ่มต้นของ Roblox
+SpeedInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedInput.TextSize = 16
+
+SpeedBtn.Name = "SpeedBtn"
+SpeedBtn.Parent = MainFrame
+SpeedBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+SpeedBtn.Position = UDim2.new(0.58, 0, 0.50, 0)
+SpeedBtn.Size = UDim2.new(0.37, 0, 0, 35)
+SpeedBtn.Font = Enum.Font.SourceSansBold
+SpeedBtn.Text = "ปรับความเร็ว"
+SpeedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedBtn.TextSize = 14
+
+-- 4. แสดงพิกัด GPS
+GPSLabel.Name = "GPSLabel"
+GPSLabel.Parent = MainFrame
+GPSLabel.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+GPSLabel.Position = UDim2.new(0.05, 0, 0.68, 0)
+GPSLabel.Size = UDim2.new(0.9, 0, 0, 75)
+GPSLabel.Font = Enum.Font.Code
+GPSLabel.Text = "GPS:\nX: 0\nY: 0\nZ: 0"
+GPSLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+GPSLabel.TextSize = 14
+
+----------------- ระบบการทำงานภายในสคริปต์ -----------------
+local Player = game.Players.LocalPlayer
+local Mouse = Player:GetMouse()
+
+-- ระบบปรับความเร็ว (Speed)
+SpeedBtn.MouseButton1Click:Connect(function()
+    local targetSpeed = tonumber(SpeedInput.Text)
+    if targetSpeed then
+        -- จำกัดความเร็วให้อยู่ในช่วง 1-100 ตามที่ขอ
+        if targetSpeed < 1 then targetSpeed = 1 end
+        if targetSpeed > 100 then targetSpeed = 100 end
+        SpeedInput.Text = tostring(targetSpeed)
+        
+        if Player.Character and Player.Character:FindFirstChildOfClass("Humanoid") then
+            Player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = targetSpeed
+        end
+    end
+end)
+
+-- ระบบเดินทะลุ (Noclip)
+local noclip = false
+NoclipBtn.MouseButton1Click:Connect(function()
+    noclip = not noclip
+    if noclip then
+        NoclipBtn.Text = "เดินทะลุ (Noclip): ON"
+        NoclipBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+    else
+        NoclipBtn.Text = "เดินทะลุ (Noclip): OFF"
+        NoclipBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    end
+end)
+
+game:GetService("RunService").Stepped:Connect(function()
+    if noclip and Player.Character then
+        for _, part in pairs(Player.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- ระบบบิน (Fly)
+local flying = false
+local flySpeed = 50
+local bv, bg
+
+FlyBtn.MouseButton1Click:Connect(function()
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = Player.Character.HumanoidRootPart
+    flying = not flying
+    
+    if flying then
+        FlyBtn.Text = "บิน (Fly): ON"
+        FlyBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+        
+        bg = Instance.new("BodyGyro", hrp)
+        bg.P = 9e4
+        bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.cframe = hrp.CFrame
+        
+        bv = Instance.new("BodyVelocity", hrp)
+        bv.velocity = Vector3.new(0, 0.1, 0)
+        bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+        
+        -- ควบคุมการบินด้วยปุ่มเดินทั่วไป (W, A, S, D)
+        task.spawn(function()
+            local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+            while flying and task.wait() do
+                if humanoid then
+                    bv.velocity = humanoid.MoveDirection * flySpeed
+                    bg.cframe = workspace.CurrentCamera.CFrame
+                end
+            end
+        end)
+    else
+        FlyBtn.Text = "บิน (Fly): OFF"
+        FlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        if bv then bv:Destroy() end
+        if bg then bg:Destroy() end
+    end
+end)
+
+-- ระบบ GPS (อัปเดตตำแหน่งแบบ Real-time)
+game:GetService("RunService").RenderStepped:Connect(function()
+    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        local pos = Player.Character.HumanoidRootPart.Position
+        GPSLabel.Text = string.format("GPS:\nX: %.2f\nY: %.2f\nZ: %.2f", pos.X, pos.Y, pos.Z)
+    else
+        GPSLabel.Text = "GPS:\nไม่พบตัวละคร"
+    end
+end)
